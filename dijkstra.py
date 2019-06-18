@@ -9,20 +9,22 @@ class graph:
     def printgraph(self):
         print(self.g)
 
-    def partialDijkstra(self, p, b, currentcost):
+    def partialDijkstra(self, p, s, b, currentcost):
         pathcost = 0
         edges = self.g[p]
         if b.name in dict(edges).keys(): #direct path
-            return dict(edges)[b.name] + currentcost
+            print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b.name] + currentcost)))
+            return (dict(edges)[b.name] + currentcost)
         else: #there is no direct path
             for edge in edges:
-                print('Calculating cost via {0}'.format(edge[0]))
-                cost = self.partialDijkstra(edge[0], b, currentcost+edge[1])
-                if pathcost == 0:
-                    pathcost = cost
-                else:
-                    if pathcost > cost:
+                if s != edge[0]:
+                    print('Calculating cost via {0} with {1}'.format(edge[0], str(currentcost+edge[1])))
+                    cost = self.partialDijkstra(edge[0], p, b, currentcost+edge[1])
+                    if pathcost == 0:
                         pathcost = cost
+                    else:
+                        if pathcost > cost:
+                            pathcost = cost
             return pathcost
 
     def dijkstraAB(self, a, b):
@@ -36,14 +38,14 @@ class graph:
                 return dict(edges)[b.name]
             else: #there is no direct path
                 for edge in edges:
-                    print('Calculating cost via {0}'.format(edge[0]))
-                    cost = self.partialDijkstra(edge[0], b, edge[1])
+                    print('Calculating cost via {0} with {1}'.format(edge[0], str(edge[1])))
+                    cost = self.partialDijkstra(edge[0], a.name, b, edge[1])
                     if pathcost == 0:
                         pathcost = cost
                     else:
                         if pathcost > cost:
                             pathcost = cost
-            return pathcost
+                return pathcost
 
 
 class vertex:
@@ -104,11 +106,61 @@ if __name__ == '__main__':
     v6 = vertex('f')
     v1.addneighbor(v2, 100)
     v1.addneighbor(v3, 50)
+    v2.addneighbor(v1, 100)
     v2.addneighbor(v4, 80)
     v2.addneighbor(v5, 50)
+    v3.addneighbor(v1, 50)
     v3.addneighbor(v4, 140)
+    v4.addneighbor(v2, 80)
+    v4.addneighbor(v3, 140)
     v4.addneighbor(v6, 30)
+    v5.addneighbor(v2, 50)
     v5.addneighbor(v6, 25)
+    v6.addneighbor(v4, 30)
+    v6.addneighbor(v5, 25)
+    g1.addvertex(v1)
+    g1.addvertex(v2)
+    g1.addvertex(v3)
+    g1.addvertex(v4)
+    g1.addvertex(v5)
+    g1.addvertex(v6)
+    g1.printgraph()
+    e = g1.dijkstraAB(v1, v5)
+    if e == -1:
+        print('One of the vertex doesn\'t belong to this graph')
+    else:
+        print('Cost of direct path is {0}'.format(e))
+
+    # Testing graph 3
+    '''
+    A-----100-----B-----50-----E
+    |             |            |
+    10           80           25
+    |             |            |
+    C------10-----D-----30-----F
+    '''
+    print("Testing graph 3")
+    g1 = graph()
+    v1 = vertex('a')
+    v2 = vertex('b')
+    v3 = vertex('c')
+    v4 = vertex('d')
+    v5 = vertex('e')
+    v6 = vertex('f')
+    v1.addneighbor(v2, 110)
+    v1.addneighbor(v3, 10)
+    v2.addneighbor(v1, 100)
+    v2.addneighbor(v4, 80)
+    v2.addneighbor(v5, 50)
+    v3.addneighbor(v1, 50)
+    v3.addneighbor(v4, 10)
+    v4.addneighbor(v2, 80)
+    v4.addneighbor(v3, 140)
+    v4.addneighbor(v6, 30)
+    v5.addneighbor(v2, 50)
+    v5.addneighbor(v6, 25)
+    v6.addneighbor(v4, 30)
+    v6.addneighbor(v5, 25)
     g1.addvertex(v1)
     g1.addvertex(v2)
     g1.addvertex(v3)
