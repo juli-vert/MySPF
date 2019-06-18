@@ -9,17 +9,17 @@ class graph:
     def printgraph(self):
         print(self.g)
 
-    def partialDijkstra(self, p, s, b, currentcost):
+    def __partialDijkstra(self, p, s, b, currentcost):
         pathcost = 0
         edges = self.g[p]
         if b.name in dict(edges).keys(): #direct path
-            print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b.name] + currentcost)))
+            #print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b.name] + currentcost)))
             return (dict(edges)[b.name] + currentcost)
         else: #there is no direct path
             for edge in edges:
                 if s != edge[0]:
-                    print('Calculating cost via {0} with {1}'.format(edge[0], str(currentcost+edge[1])))
-                    cost = self.partialDijkstra(edge[0], p, b, currentcost+edge[1])
+                    #print('Calculating cost via {0} with {1}'.format(edge[0], str(currentcost+edge[1])))
+                    cost = self.__partialDijkstra(edge[0], p, b, currentcost+edge[1])
                     if pathcost == 0:
                         pathcost = cost
                     else:
@@ -34,12 +34,12 @@ class graph:
             pathcost = 0
             edges = self.g[a.name]
             if b.name in dict(edges).keys(): #direct path
-                print('Direct path found at {0}'.format(a.name))
+                #print('Direct path found at {0}'.format(a.name))
                 return dict(edges)[b.name]
             else: #there is no direct path
                 for edge in edges:
-                    print('Calculating cost via {0} with {1}'.format(edge[0], str(edge[1])))
-                    cost = self.partialDijkstra(edge[0], a.name, b, edge[1])
+                    #print('Calculating cost via {0} with {1}'.format(edge[0], str(edge[1])))
+                    cost = self.__partialDijkstra(edge[0], a.name, b, edge[1])
                     if pathcost == 0:
                         pathcost = cost
                     else:
@@ -147,7 +147,7 @@ if __name__ == '__main__':
     v4 = vertex('d')
     v5 = vertex('e')
     v6 = vertex('f')
-    v1.addneighbor(v2, 110)
+    v1.addneighbor(v2, 100)
     v1.addneighbor(v3, 10)
     v2.addneighbor(v1, 100)
     v2.addneighbor(v4, 80)
@@ -168,7 +168,7 @@ if __name__ == '__main__':
     g1.addvertex(v5)
     g1.addvertex(v6)
     g1.printgraph()
-    e = g1.dijkstraAB(v1, v5)
+    e = g1.dijkstraAB(v1, v6)
     if e == -1:
         print('One of the vertex doesn\'t belong to this graph')
     else:
