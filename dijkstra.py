@@ -1,3 +1,4 @@
+import json
 class graph:
 
     def __init__(self):
@@ -9,15 +10,19 @@ class graph:
     def printgraph(self):
         print(self.g)
 
+    # p: current vertex
+    # s: source vertex (from where we have been called)
+    # b: destination
+    # currentcost: sum of the costs until this point
     def __partialDijkstra(self, p, s, b, currentcost):
         pathcost = 0
         edges = self.g[p]
-        if b.name in dict(edges).keys(): #direct path
-            #print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b.name] + currentcost)))
-            return (dict(edges)[b.name] + currentcost)
+        if b in dict(edges).keys(): #direct path
+            #print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b] + currentcost)))
+            return (dict(edges)[b] + currentcost)
         else: #there is no direct path
             for edge in edges:
-                if s != edge[0]:
+                if s != edge[0]: # split horizon
                     #print('Calculating cost via {0} with {1}'.format(edge[0], str(currentcost+edge[1])))
                     cost = self.__partialDijkstra(edge[0], p, b, currentcost+edge[1])
                     if pathcost == 0:
@@ -28,18 +33,18 @@ class graph:
             return pathcost
 
     def dijkstraAB(self, a, b):
-        if a.name not in self.g.keys() or b.name not in self.g.keys():
+        if a not in self.g.keys() or b not in self.g.keys():
             return -1
         else:
             pathcost = 0
-            edges = self.g[a.name]
-            if b.name in dict(edges).keys(): #direct path
-                #print('Direct path found at {0}'.format(a.name))
-                return dict(edges)[b.name]
+            edges = self.g[a]
+            if b in dict(edges).keys(): #direct path
+                #print('Direct path found at {0}'.format(a))
+                return dict(edges)[b]
             else: #there is no direct path
                 for edge in edges:
                     #print('Calculating cost via {0} with {1}'.format(edge[0], str(edge[1])))
-                    cost = self.__partialDijkstra(edge[0], a.name, b, edge[1])
+                    cost = self.__partialDijkstra(edge[0], a, b, edge[1])
                     if pathcost == 0:
                         pathcost = cost
                     else:
@@ -47,6 +52,19 @@ class graph:
                             pathcost = cost
                 return pathcost
 
+    def fullDijkstra(self):
+        tpath = {}
+        for vxs in self.g.keys():
+            ppath = {vxs:{}}
+            for vxd in self.g.keys():
+                lpath = {}
+                if vxs != vxd:
+                    lpath.update({vxd:self.dijkstraAB(vxs, vxd)})
+                else:
+                    lpath.update({vxd:0})
+                ppath[vxs].update(lpath)
+            tpath.update(ppath)
+        return tpath
 
 class vertex:
 
@@ -83,7 +101,7 @@ if __name__ == '__main__':
     v2.addneighbor(v4, 80)
     g1.printgraph()
     #v5 = vertex('e')
-    e = g1.dijkstraAB(v1,v4)
+    e = g1.dijkstraAB(v1.name,v4.name)
     if e == -1:
         print('One of the vertex doesn\'t belong to this graph')
     else:
@@ -125,7 +143,7 @@ if __name__ == '__main__':
     g1.addvertex(v5)
     g1.addvertex(v6)
     g1.printgraph()
-    e = g1.dijkstraAB(v1, v5)
+    e = g1.dijkstraAB(v1.name, v5.name)
     if e == -1:
         print('One of the vertex doesn\'t belong to this graph')
     else:
@@ -155,7 +173,7 @@ if __name__ == '__main__':
     v3.addneighbor(v1, 50)
     v3.addneighbor(v4, 10)
     v4.addneighbor(v2, 80)
-    v4.addneighbor(v3, 140)
+    v4.addneighbor(v3, 10)
     v4.addneighbor(v6, 30)
     v5.addneighbor(v2, 50)
     v5.addneighbor(v6, 25)
@@ -168,8 +186,9 @@ if __name__ == '__main__':
     g1.addvertex(v5)
     g1.addvertex(v6)
     g1.printgraph()
-    e = g1.dijkstraAB(v1, v6)
+    e = g1.dijkstraAB(v2.name, v6.name)
     if e == -1:
         print('One of the vertex doesn\'t belong to this graph')
     else:
         print('Cost of direct path is {0}'.format(e))
+    print (g1.fullDijkstra())
