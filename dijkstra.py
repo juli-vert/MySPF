@@ -120,7 +120,6 @@ class graph:
 
     def __init__(self):
         self.g = {}
-        # !!self.priors = {}
         self.dr = None
         self.bdr = None
         self.fullroute = None
@@ -133,11 +132,10 @@ class graph:
             return True
         else:
             return False
-     
+
     def addvertex(self, v):
         if v.name not in self.g.keys():
             self.g.update({v.name:v})
-            # !!self.priors.update({v.name:v.priority})
             if self.dr == None:
                 self.dr = v.name
             else:
@@ -185,37 +183,33 @@ class graph:
             print('and priority {0}'.format(self.g[it].priority))
 
     # p: current vertex
-    # i: initial vertex (to avoid loops)
-    # s: source vertex (from where we have been called)
+    # path: vertex that we already walked thru (avoiding loops and split horizon
     # b: destination
     # currentcost: sum of the costs until this point
-    def __partialDijkstra(self, p, i, s, b, currentcost):
+    def __partialDijkstra(self, p, path, b, currentcost):
         pathcost = 0
-        if p != i: #avoid loops
-            print('From {0} via {1}-{2} to {3}'.format(i, s, p, b))
+        if p not in path: # avoid loops and split horizon
             if p in self.g.keys():
                 edges = self.g[p].neighbors
                 if b in edges.keys(): #direct path
-                    # print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b] + currentcost)))
                     return (edges[b] + currentcost), b
                 else: #there is no direct path
                     nexthop = None
                     for edge in edges:
-                        if s != edge : # split horizon
-                            #print('Calculating cost via {0} with {1}'.format(edge[0], str(currentcost+edge[1])))
-                            cost, nh = self.__partialDijkstra(edge, i, p, b, currentcost+edges[edge])
-                            if pathcost == 0:
+                        path.append(p)
+                        cost, nh = self.__partialDijkstra(edge, path, b, currentcost+edges[edge])
+                        if pathcost == 0 and cost != -1:
+                            pathcost = cost
+                            nexthop = edge
+                        else:
+                            if pathcost > cost and cost !=-1:
                                 pathcost = cost
                                 nexthop = edge
-                            else:
-                                if pathcost > cost:
-                                    pathcost = cost
-                                    nexthop = edge
                     return pathcost, nexthop
             else:
-                return 0, None
+                return -1, None
         else:
-            return 0, None
+            return -1, None
 
     def dijkstraAB(self, a, b):
         if a not in self.g.keys() or b not in self.g.keys():
@@ -225,18 +219,17 @@ class graph:
                 pathcost = 0
                 edges = self.g[a].neighbors
                 if b in edges.keys(): #direct path
-                    # print('Direct path found at {0}'.format(a))
                     return edges[b], b
                 else: #there is no direct path
                     nexthop = None
                     for edge in edges:
-                        #print('Calculating cost via {0} with {1}'.format(edge[0], str(edge[1])))
-                        cost, nh = self.__partialDijkstra(edge, a, a, b, edges[edge])
+                        path = [a]
+                        cost, nh = self.__partialDijkstra(edge, path, b, edges[edge])
                         if pathcost == 0:
                             pathcost = cost
                             nexthop = edge
                         else:
-                            if pathcost > cost:
+                            if pathcost > cost and cost !=-1:
                                 pathcost = cost
                                 nexthop = edge
                     return pathcost, nexthop
@@ -315,5 +308,4 @@ if __name__ == '__main__':
             print('Wrong option\n')
 
 
-    
-    
+
