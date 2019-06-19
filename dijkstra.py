@@ -191,16 +191,17 @@ class graph:
     # currentcost: sum of the costs until this point
     def __partialDijkstra(self, p, i, s, b, currentcost):
         pathcost = 0
-        if p in self.g.keys():
-            edges = self.g[p].neighbors
-            if b in edges.keys(): #direct path
-                # print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b] + currentcost)))
-                return (edges[b] + currentcost), b
-            else: #there is no direct path
-                nexthop = None
-                for edge in edges:
-                    if s != edge : # split horizon
-                        if i != edge: # avoid loops
+        if p != i: #avoid loops
+            print('From {0} via {1}-{2} to {3}'.format(i, s, p, b))
+            if p in self.g.keys():
+                edges = self.g[p].neighbors
+                if b in edges.keys(): #direct path
+                    # print('Direct path found at {0} by {1}'.format(p, str(dict(edges)[b] + currentcost)))
+                    return (edges[b] + currentcost), b
+                else: #there is no direct path
+                    nexthop = None
+                    for edge in edges:
+                        if s != edge : # split horizon
                             #print('Calculating cost via {0} with {1}'.format(edge[0], str(currentcost+edge[1])))
                             cost, nh = self.__partialDijkstra(edge, i, p, b, currentcost+edges[edge])
                             if pathcost == 0:
@@ -210,9 +211,12 @@ class graph:
                                 if pathcost > cost:
                                     pathcost = cost
                                     nexthop = edge
-                return pathcost, nexthop
+                    return pathcost, nexthop
+            else:
+                return 0, None
         else:
             return 0, None
+
     def dijkstraAB(self, a, b):
         if a not in self.g.keys() or b not in self.g.keys():
             return -1, None
