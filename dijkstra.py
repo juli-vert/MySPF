@@ -108,11 +108,11 @@ def Test3():
     g1.addvertex(v5)
     g1.addvertex(v6)
     g1.printgraph()
-    e, nh = g1.dijkstraAB(v1.name,v6.name)
+    '''e, nh = g1.dijkstraAB(v1.name,v6.name)
     if e == -1:
         print('One of the vertex doesn\'t belong to this graph')
     else:
-        print('Cost of direct path is {0} via {1}'.format(e, nh))
+        print('Cost of direct path is {0} via {1}'.format(e, nh))'''
     print (g1.fullDijkstra())
     return g1
 
@@ -187,25 +187,32 @@ class graph:
     # b: destination
     # currentcost: sum of the costs until this point
     def __partialDijkstra(self, p, path, b, currentcost):
-        pathcost = 0
         if p not in path: # avoid loops and split horizon
             if p in self.g.keys():
                 edges = self.g[p].neighbors
-                if b in edges.keys(): #direct path
-                    return (edges[b] + currentcost), b
-                else: #there is no direct path
-                    nexthop = None
-                    for edge in edges:
-                        path.append(p)
-                        cost, nh = self.__partialDijkstra(edge, path, b, currentcost+edges[edge])
-                        if pathcost == 0 and cost != -1:
+                pathcost = -1
+                nexthop = None
+                p2 = list(path)
+                p2.append(p)
+                for edge in edges:
+                    if b == edge: #direct path
+                        if pathcost == -1:
+                            pathcost = edges[b] + currentcost
+                            nexthop = b
+                        else:
+                            if pathcost > edges[b] + currentcost and edges[b] !=-1:
+                                pathcost = edges[b] + currentcost
+                                nexthop = b
+                    else: #no direct path: we need to jump to the next
+                        cost, nh = self.__partialDijkstra(edge, p2, b, currentcost+edges[edge])
+                        if pathcost == -1 and cost != -1:
                             pathcost = cost
                             nexthop = edge
                         else:
                             if pathcost > cost and cost !=-1:
                                 pathcost = cost
                                 nexthop = edge
-                    return pathcost, nexthop
+                return pathcost, nexthop
             else:
                 return -1, None
         else:
@@ -216,23 +223,29 @@ class graph:
             return -1, None
         else:
             if len(self.g[b].neighbors) > 0: # only if there is at least a path to the destination
-                pathcost = 0
+                pathcost = -1
                 edges = self.g[a].neighbors
-                if b in edges.keys(): #direct path
-                    return edges[b], b
-                else: #there is no direct path
-                    nexthop = None
-                    for edge in edges:
+                nexthop = None
+                for edge in edges:
+                    if b == edge: #direct path
+                        if pathcost == -1:
+                            pathcost = edges[b]
+                            nexthop = b
+                        else:
+                            if pathcost > edges[b] and edges[b] !=-1:
+                                pathcost = edges[b]
+                                nexthop = b
+                    else: #no direct path: we need to jump to the next neighbor
                         path = [a]
                         cost, nh = self.__partialDijkstra(edge, path, b, edges[edge])
-                        if pathcost == 0:
+                        if pathcost == -1:
                             pathcost = cost
                             nexthop = edge
                         else:
                             if pathcost > cost and cost !=-1:
                                 pathcost = cost
                                 nexthop = edge
-                    return pathcost, nexthop
+                return pathcost, nexthop
             else:
                 return -1, None
 
@@ -278,8 +291,11 @@ if __name__ == '__main__':
     while not leave:
         opt = input('Pick an option:\n -(list) to check the list of vertex\n \
 -(route+vertex_name) to check routing table of vertex_number\n \
--(add+vertex_name+priority) to add a new vertex to the network\n -(edge+vertex_source+vertex_dest+cost) to add a new edge\n \
--(remove+vertex_name) to delete the vertex from the network\n -(exit) to exit\n\
+-(add+vertex_name+priority) to add a new vertex to the network\n \
+-(edge+vertex_source+vertex_dest+cost) to add a new edge\n \
+-(remove+vertex_name) to delete the vertex from the network\n \
+-(check+vertex_source+vertex_dest) to check the paths from source to dest\n \
+-(exit) to exit\n\
 :')
         if opt == 'exit':
             leave = True
@@ -304,6 +320,12 @@ if __name__ == '__main__':
                     g1.addedge(sv, dv, int(cost))
         elif 'remove' in opt:
             pass
+        elif 'check' in opt:
+            if len(opt.split('+')) < 3:
+                print('Wrong parameters\n')
+            else:
+                o, s, d = opt.split('+')
+                print(g1.dijkstraAB(s,d))
         else:
             print('Wrong option\n')
 
