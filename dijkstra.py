@@ -162,7 +162,7 @@ class graph:
             else:
                 print("Recalculating routes: Convergency in progress")
                 for ver in self.g.keys():
-                    ver.delneighbor(self.g[v])
+                    self.g[ver].delneighbor(self.g[v])
                 del self.g[v]
                 self.fullroute = self.fullDijkstra()
                 for v in self.g.keys(): #send the vertex routes to each
