@@ -128,10 +128,7 @@ class graph:
         return self.g.keys()
 
     def vertexexists(self, vname):
-        if vname in self.g.keys():
-            return True
-        else:
-            return False
+        return vname in self.g.keys()
 
     def addvertex(self, v):
         if v.name not in self.g.keys():
@@ -157,14 +154,19 @@ class graph:
             print("Vertex {0} is already in the graph".format(v.name))
 
     def delvertex(self, v):
-        if v.name not in self.g.keys():
+        if v not in self.g.keys():
             print("Vertex {0} is not in the graph".format(v.name))
         else:
-            if v.name == self.dr or v.name == self.bdr:
+            if v == self.dr or v == self.bdr:
                 print("Designated Routers changed: Convergency in progress")
             else:
                 print("Recalculating routes: Convergency in progress")
-                # self.fullroute = self.fullDijkstra()
+                for ver in self.g.keys():
+                    ver.delneighbor(self.g[v])
+                del self.g[v]
+                self.fullroute = self.fullDijkstra()
+                for v in self.g.keys(): #send the vertex routes to each
+                    self.g[v].updaterouting(self.fullroute[v])
 
     def addedge(self, vs, vd, cost):
         self.g[vs].addneighbor(self.g[vd], cost)
@@ -196,22 +198,14 @@ class graph:
                 p2.append(p)
                 for edge in edges:
                     if b == edge: #direct path
-                        if pathcost == -1:
+                        if pathcost == -1 or (pathcost > edges[b] + currentcost and edges[b] !=-1):
                             pathcost = edges[b] + currentcost
                             nexthop = b
-                        else:
-                            if pathcost > edges[b] + currentcost and edges[b] !=-1:
-                                pathcost = edges[b] + currentcost
-                                nexthop = b
                     else: #no direct path: we need to jump to the next
                         cost, nh = self.__partialDijkstra(edge, p2, b, currentcost+edges[edge])
-                        if pathcost == -1 and cost != -1:
+                        if (pathcost == -1 and cost != -1) or (pathcost > cost and cost !=-1):
                             pathcost = cost
                             nexthop = edge
-                        else:
-                            if pathcost > cost and cost !=-1:
-                                pathcost = cost
-                                nexthop = edge
                 return pathcost, nexthop
             else:
                 return -1, None
@@ -228,23 +222,15 @@ class graph:
                 nexthop = None
                 for edge in edges:
                     if b == edge: #direct path
-                        if pathcost == -1:
+                        if pathcost == -1 or (pathcost > edges[b] and edges[b] !=-1):
                             pathcost = edges[b]
                             nexthop = b
-                        else:
-                            if pathcost > edges[b] and edges[b] !=-1:
-                                pathcost = edges[b]
-                                nexthop = b
                     else: #no direct path: we need to jump to the next neighbor
                         path = [a]
                         cost, nh = self.__partialDijkstra(edge, path, b, edges[edge])
-                        if pathcost == -1:
+                        if pathcost == -1 or (pathcost > cost and cost !=-1):
                             pathcost = cost
                             nexthop = edge
-                        else:
-                            if pathcost > cost and cost !=-1:
-                                pathcost = cost
-                                nexthop = edge
                 return pathcost, nexthop
             else:
                 return -1, None
@@ -277,7 +263,7 @@ class graph:
 
         def delneighbor(self, n):
             if n.name in self.neighbors.keys():
-                del self.neighbors[n]
+                del self.neighbors[n.name]
 
         def updaterouting(self, routes):
             self.rtable = routes
@@ -286,10 +272,8 @@ class graph:
             return self.rtable
 
 if __name__ == '__main__':
-    leave = False
     g1 = Test3()
-    while not leave:
-        opt = input('Pick an option:\n -(list) to check the list of vertex\n \
+    opt = input('Pick an option:\n -(list) to check the list of vertex\n \
 -(route+vertex_name) to check routing table of vertex_number\n \
 -(add+vertex_name+priority) to add a new vertex to the network\n \
 -(edge+vertex_source+vertex_dest+cost) to add a new edge\n \
@@ -297,8 +281,9 @@ if __name__ == '__main__':
 -(check+vertex_source+vertex_dest) to check the paths from source to dest\n \
 -(exit) to exit\n\
 :')
+    while 1:
         if opt == 'exit':
-            leave = True
+            break
         elif 'route' in opt:
             if g1.vertexexists(opt.split('+')[1]):
                 print(g1.g[opt.split('+')[1]].printroutes())
@@ -319,7 +304,12 @@ if __name__ == '__main__':
                 if g1.vertexexists(sv) and g1.vertexexists(dv):
                     g1.addedge(sv, dv, int(cost))
         elif 'remove' in opt:
-            pass
+            if len(opt.split('+')) < 2:
+                print('Wrong parameters\n')
+            else:
+                o, ver = opt.split('+')
+                if g1.vertexexists(ver):
+                    g1.delvertex(ver)
         elif 'check' in opt:
             if len(opt.split('+')) < 3:
                 print('Wrong parameters\n')
@@ -328,6 +318,7 @@ if __name__ == '__main__':
                 print(g1.dijkstraAB(s,d))
         else:
             print('Wrong option\n')
+        opt = input(':')
 
 
 
