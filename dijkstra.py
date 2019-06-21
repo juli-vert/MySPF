@@ -120,8 +120,6 @@ class graph:
 
     def __init__(self):
         self.g = {}
-        self.dr = None
-        self.bdr = None
         self.fullroute = None
 
     def listofvertex(self):
@@ -133,18 +131,6 @@ class graph:
     def addvertex(self, v):
         if v.name not in self.g.keys():
             self.g.update({v.name:v})
-            if self.dr == None:
-                self.dr = v.name
-            else:
-                if self.bdr == None:
-                    self.bdr = v.name
-                else:
-                    if self.g[self.dr].priority > v.priority:
-                        self.bdr = self.dr
-                        self.dr = v.name
-                    else:
-                        if self.g[self.bdr].priority > v.priority:
-                            self.bdr = v.name
             self.printgraph()
             print('!--- New vertex found: Updating routing tables ---!')
             self.fullroute = self.fullDijkstra()
@@ -157,16 +143,13 @@ class graph:
         if v not in self.g.keys():
             print("Vertex {0} is not in the graph".format(v.name))
         else:
-            if v == self.dr or v == self.bdr:
-                print("Designated Routers changed: Convergency in progress")
-            else:
-                print("Recalculating routes: Convergency in progress")
-                for ver in self.g.keys():
-                    self.g[ver].delneighbor(self.g[v])
-                del self.g[v]
-                self.fullroute = self.fullDijkstra()
-                for v in self.g.keys(): #send the vertex routes to each
-                    self.g[v].updaterouting(self.fullroute[v])
+            print("Recalculating routes: Convergency in progress")
+            for ver in self.g.keys():
+                self.g[ver].delneighbor(self.g[v])
+            del self.g[v]
+            self.fullroute = self.fullDijkstra()
+            for v in self.g.keys(): #send the vertex routes to each
+                self.g[v].updaterouting(self.fullroute[v])
 
     def addedge(self, vs, vd, cost):
         self.g[vs].addneighbor(self.g[vd], cost)
@@ -177,15 +160,22 @@ class graph:
         for v in self.g.keys(): #send the vertex routes to each
             self.g[v].updaterouting(self.fullroute[v])
 
+    def deledge(self, vs, vd):
+        if self.g[vs].delneighbor(self.g[vd]) and self.g[vd].delneighbor(self.g[vs]):
+            self.printgraph()
+            print('!--- New adjacency found: Updating routing tables ---!')
+            self.fullroute = self.fullDijkstra()
+            for v in self.g.keys(): #send the vertex routes to each
+                self.g[v].updaterouting(self.fullroute[v])
+
     def printgraph(self):
-        print("The DR is {0} and the DBR is {1}".format(self.dr, self.bdr))
         for it in self.g:
             print('Node {0} with neighbors: '.format(it))
             print(self.g[it].neighbors)
             print('and priority {0}'.format(self.g[it].priority))
 
     # p: current vertex
-    # path: vertex that we already walked thru (avoiding loops and split horizon
+    # path: vertex that we already walked thru (avoiding loops and split horizon)
     # b: destination
     # currentcost: sum of the costs until this point
     def __partialDijkstra(self, p, path, b, currentcost):
@@ -264,6 +254,10 @@ class graph:
         def delneighbor(self, n):
             if n.name in self.neighbors.keys():
                 del self.neighbors[n.name]
+                return True
+            else: 
+                print('{0} is not connected to {1}'.format(self.name, n.name))
+                return False
 
         def updaterouting(self, routes):
             self.rtable = routes
@@ -278,6 +272,7 @@ if __name__ == '__main__':
 -(add+vertex_name+priority) to add a new vertex to the network\n \
 -(edge+vertex_source+vertex_dest+cost) to add a new edge\n \
 -(remove+vertex_name) to delete the vertex from the network\n \
+-(del+vertex_source+vertex_dest) to delete an edge\n \
 -(check+vertex_source+vertex_dest) to check the paths from source to dest\n \
 -(exit) to exit\n\
 :')
@@ -316,6 +311,12 @@ if __name__ == '__main__':
             else:
                 o, s, d = opt.split('+')
                 print(g1.dijkstraAB(s,d))
+        elif 'del' in opt:
+            if len(opt.split('+')) < 3:
+                print('Wrong parameters\n')
+            else:
+                o, sv, dv = opt.split('+')
+                v = g1.deledge(sv,dv)
         else:
             print('Wrong option\n')
         opt = input(':')
