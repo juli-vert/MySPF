@@ -18,8 +18,9 @@ def registerRouter():
     global __g
     rname = request.args.get('name')
     rip = request.args.get('ip')
+    rport = request.args.get('port')
     rpriority = request.args.get('priority')
-    out = __g.registerRouter(rname, rip, rpriority)
+    out = __g.registerRouter(rname, rip, rport, rpriority)
     if out:
         resp = Response('New router added', status=200, mimetype='text/plain')
     else:

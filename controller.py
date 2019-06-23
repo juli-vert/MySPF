@@ -11,6 +11,7 @@ class controller(graph):
         print('Setting up the controller')
         self.ipmgmt = ip_interface(ip)
         self.port = p
+        self.managed_routers = {}
         graph.__init__(self)
 
     def getIP(self):
@@ -20,7 +21,8 @@ class controller(graph):
     def getNetwork(self):
         return self.printgraph()
 
-    def registerRouter(self, name, ip, prior):
+    def registerRouter(self, name, ip, port, prior):
         v = graph.vertex(name, prior)
+        self.managed_routers.update({name:(ip, port)})
         return self.addvertex(v)
 
