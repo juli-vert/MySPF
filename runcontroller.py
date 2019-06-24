@@ -19,6 +19,13 @@ def getRouting():
     resp = Response(json.dumps(out, indent=4), status=200, mimetype='application/json')
     return resp
 
+@app.route('/manageddevices')
+def getDevices():
+    global __g
+    out = json.dumps(__g.managed_routers, indent=4)
+    resp = Response(out, status=200, mimetype='application/json')
+    return resp
+
 # callable method to register a new router
 @app.route('/router', methods=['GET'])
 def registerRouter():

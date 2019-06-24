@@ -38,10 +38,10 @@ class graph:
 
     # to be changed. Currently it's bidirectional with equal cost, it must
     # be defined by direction
-    def addedge(self, vs, vd, cost):
+    def addedge(self, vs, vd, cost1, cost2):
         if vs != vd:
-            self.g[vs].addneighbor(self.g[vd], cost)
-            self.g[vd].addneighbor(self.g[vs], cost)
+            self.g[vs].addneighbor(self.g[vd], cost1)
+            self.g[vd].addneighbor(self.g[vs], cost2)
             self.printgraph()
             print('!--- New adjacency found: Updating routing tables ---!')
             self.fullroute = self.fullDijkstra()

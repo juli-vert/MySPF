@@ -24,7 +24,7 @@ class controller(graph):
 
     def registerRouter(self, name, ip, port, prior):
         v = graph.vertex(name, prior)
-        self.managed_routers["nodes"].append({"name": name, "ip": ip, "port": port, "interfaces": []})
+        self.managed_routers["nodes"].append({"name": name, "ip": ip, "port": port, "interfaces": [], "direct_routes": []})
         return self.addvertex(v)
 
     def registerIface(self, name, ip, cost):
@@ -41,16 +41,16 @@ class controller(graph):
         else:
             iface = ip_interface(ip)
             # First we register the new interface into the managed_routers dictionary
-            self.managed_routers['nodes'][idx]['interfaces'].append(iface)
+            self.managed_routers['nodes'][idx]['interfaces'].append((str(iface), cost))
             # Second we check if this new interface generates any new adjacency
             neighbors = []
             out = []
             for node in self.managed_routers['nodes']:
                 for mriface in node['interfaces']:
-                    if ip_interface(mriface).network == iface.network:
+                    if ip_interface(mriface[0]).network == iface.network:
                         neighbors.append(node['name'])
-            for neig in neighbors:
-                out.append(self.addedge(name, neig, cost))
+                        cost2 = int(mriface[1])
+                        out.append(self.addedge(name, node['name'], cost2, cost))
             for a, b in zip(neighbors, out):
                 if b == 1:
                     res.append(a)
