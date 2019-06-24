@@ -36,14 +36,20 @@ class graph:
             for v in self.g.keys(): #send the vertex routes to each
                 self.g[v].updaterouting(self.fullroute[v])
 
+    # to be changed. Currently it's bidirectional with equal cost, it must
+    # be defined by direction
     def addedge(self, vs, vd, cost):
-        self.g[vs].addneighbor(self.g[vd], cost)
-        self.g[vd].addneighbor(self.g[vs], cost)
-        self.printgraph()
-        print('!--- New adjacency found: Updating routing tables ---!')
-        self.fullroute = self.fullDijkstra()
-        for v in self.g.keys(): #send the vertex routes to each
-            self.g[v].updaterouting(self.fullroute[v])
+        if vs != vd:
+            self.g[vs].addneighbor(self.g[vd], cost)
+            self.g[vd].addneighbor(self.g[vs], cost)
+            self.printgraph()
+            print('!--- New adjacency found: Updating routing tables ---!')
+            self.fullroute = self.fullDijkstra()
+            for v in self.g.keys(): #send the vertex routes to each
+                self.g[v].updaterouting(self.fullroute[v])
+            return 1
+        else:
+            return 0
 
     def deledge(self, vs, vd):
         if self.g[vs].delneighbor(self.g[vd]) and self.g[vd].delneighbor(self.g[vs]):

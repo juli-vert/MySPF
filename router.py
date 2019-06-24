@@ -13,6 +13,7 @@ class router():
             self.ip = ip_interface(mgmtIP)
             self.controller = ip_address(controllerIP)
             self.interfaces = {}
+            self.localroutes = {}
             params = {'name':name, 'ip': mgmtIP, 'port': port, 'priority': prio}
             r = rq.get('http://{0}:8088/router'.format(controllerIP), params=params)
             print(r)
