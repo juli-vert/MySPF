@@ -61,16 +61,14 @@ def registerIface():
     return resp
 
 if __name__ == '__main__':
-    n = p = h = False
+    p = h = False
     for arg in sys.argv:
-        if arg.startswith('-h'):
-            h = arg.split('h')[1]
-        elif arg.startswith('-n'):
-            n = arg.split('n')[1]
-        elif arg.startswith('-p'):
-            p = arg.split('p')[1]
-    if h and n and p:
-        __g = controller(ip=h, net=n, p=int(p))
+        if arg.startswith('ip='):
+            h = arg.split('=')[1]
+        elif arg.startswith('port'):
+            p = arg.split('=')[1]
+    if h and p:
+        __g = controller(ip=h, p=int(p))
     else:
         print("Not all parameters have been met, running with defaults")
         __g = controller()
