@@ -37,7 +37,7 @@ class controller(graph):
                 break
             idx += 1
         if not exists:
-            return 0, res
+            return 0, res, -1
         else:
             iface = ip_interface(ip)
             # First we register the new interface into the managed_routers dictionary
@@ -54,7 +54,7 @@ class controller(graph):
             for a, b in zip(neighbors, out):
                 if b == 1:
                     res.append(a)
-            return 1, res
+            return 1, res, idx
 
 
 

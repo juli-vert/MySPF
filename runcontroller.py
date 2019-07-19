@@ -2,6 +2,7 @@ from flask import json, Flask, make_response, Response, request
 import json
 from controller import controller
 import sys
+import requests as rq
 
 app = Flask(__name__)
 
@@ -48,16 +49,26 @@ def registerjRouter():
 
 @app.route('/link', methods=['GET'])
 def registerIface():
+    global __g
     rname = request.args.get('name')
     ip = request.args.get('ip')
     mask = request.args.get('mask')
     cost = request.args.get('cost')
-    out, neighbors = __g.registerIface(rname, '{0}/{1}'.format(ip, mask), int(cost))
-    if out:
-        out = '{{ "Node" : "{0}", "Interface" : "{1}", "Neighbors" : ["{2}"] }}'.format(rname, '{0}/{1}'.format(ip, mask), '","'.join(neighbors))
-        resp = Response(json.dumps(json.loads(out), indent=4), status=200, mimetype='application/json')
+    out, neighbors, pos = __g.registerIface(rname, '{0}/{1}'.format(ip, mask), int(cost))
+    if pos != -1:
+        if out:
+            out = '{{ "Node" : "{0}", "Interface" : "{1}", "Neighbors" : ["{2}"] }}'.format(rname, '{0}/{1}'.format(ip, mask), '","'.join(neighbors))
+            raddr, rport = __g.managed_routers["nodes"][pos]['ip'].split('/')[0], __g.managed_routers["nodes"][pos]['port']
+            params = {'ip': '{0}/{1}'.format(ip, mask), 'cost': cost}
+            r = rq.get('http://{0}:{1}/createIface'.format(raddr, rport), params=params)
+            if r.status_code == 200:
+                resp = Response(json.dumps(json.loads(out), indent=4), status=200, mimetype='application/json')
+            else:
+                resp = Response('Failed to apply interface to router', status=200, mimetype='text/plain')
+        else:
+            resp = Response('Failed to add new interface', status=200, mimetype='text/plain')
     else:
-        resp = Response('Failed to add new interface', status=200, mimetype='text/plain')
+        resp = Response('Router does not exist', status=200, mimetype='text/plain')
     return resp
 
 if __name__ == '__main__':
